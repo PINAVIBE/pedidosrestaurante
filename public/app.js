@@ -21,8 +21,6 @@ let user = null, vista = '', cart = {}, filtro = 'Todos';
 const $ = s => document.querySelector(s);
 const money = n => '$' + n.toLocaleString('es-CO');
 
-// ---------- imágenes de los platos (public/img) ----------
-// Busca por nombre del producto; si no hay coincidencia, usa la imagen de su categoría.
 const sinTildes = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const IMG_NOMBRE = [[/ejecutivo/, 'almuerzo-ejecutivo.jpg'], [/arroz.*pollo/, 'arroz-con-pollo.jpg'], [/empanada/, 'empanada.jpg'],
 [/jugo/, 'jugo-natural.jpg'], [/gaseosa|refresco|\bcola\b/, 'gaseosa.jpg'], [/fruta/, 'ensalada-frutas.jpg'],
@@ -31,7 +29,7 @@ const IMG_CAT = { Almuerzos: 'almuerzo-ejecutivo.jpg', Snacks: 'empanada.jpg', B
 const imgDe = p => { const n = sinTildes(p.nombre), hit = IMG_NOMBRE.find(([re]) => re.test(n)); return `img/${hit ? hit[1] : IMG_CAT[p.cat] || 'almuerzo-ejecutivo.jpg'}`; };
 const foto = (p, cls, alt = p.nombre) => `<img class="${cls}" src="${imgDe(p)}" alt="${esc(alt)}" loading="lazy">`;
 const thumb = p => foto(p, 'thumb', '');
-const thumbItem = i => thumb({ nombre: i.nombre, cat: db.productos.find(p => p.id == i.id)?.cat }); // i = línea de un pedido
+const thumbItem = i => thumb({ nombre: i.nombre, cat: db.productos.find(p => p.id == i.id)?.cat });
 const NAV = {
   cliente: [['menu', 'Menú'], ['mis', 'Mis pedidos']],
   cocina: [['cocina', 'Pedidos en cocina']],
@@ -118,7 +116,7 @@ const V = {
   },
   usuarios() {
     return `<div class="bar"><h3 style="margin:0">Usuarios</h3><button data-a="nuevoUser">Nuevo usuario</button></div><div class="scroll"><table><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th></th></tr>
-      ${db.usuarios.map(u => `<tr><td>${esc(u.nombre)}</td><td>${esc(u.email)}</td><td><span class="tag">${esc(u.rol)}</span></td><td>${u.id == user.id ? '' : `<button class="sm danger" data-a="delUser" data-id="${u.id}">Eliminar</button>`}</td></tr>`).join('')}</table></div>`;
+      ${db.usuarios.map(u => `<tr><td>${esc(u.nombre)}</td><td>${esc(u.email)}</td><td><span class="tag">${esc(u.rol)}</span></td><td>${u.id == user.id ? '' : `<button class="sm danger" data-a="delUser" data-id="${u.id}">Eliminar</button>`} <button class="sm" data-a="passUser" data-id="${u.id}">Cambiar contraseña</button></td></tr>`).join('')}</table></div>`;
   }
 };
 
@@ -157,9 +155,14 @@ const A = {
   },
   stock: async (id, b) => { await api('POST', `/api/productos/${id}/stock`, { delta: +b.dataset.d }); await refrescar(); },
   nuevoUser: () => form('Nuevo usuario', [{ k: 'nombre', l: 'Nombre' }, { k: 'email', l: 'Correo', t: 'email' }, { k: 'password', l: 'Contraseña (mínimo 8 caracteres)', t: 'password' }, { k: 'rol', l: 'Rol', o: ['cliente', 'cocina', 'admin'] }], o => api('POST', '/api/usuarios', o)),
+  passUser: id => {
+    const u = db.usuarios.find(x => x.id == id);
+    form(`Nueva contraseña para ${u.nombre}`, [{ k: 'password', l: 'Nueva contraseña (mínimo 8 caracteres)', t: 'password' }],
+      async o => { await api('POST', `/api/usuarios/${id}/password`, o); toast('Contraseña actualizada'); });
+  },
   delUser: async id => { if (confirm('¿Eliminar este usuario?')) { await api('DELETE', `/api/usuarios/${id}`); await refrescar(); } },
   csv: () => {
-    const q = t => '"' + (/^[=+\-@]/.test(t) ? "'" + t : t).replace(/"/g, '""') + '"'; // evita fórmulas en Excel
+    const q = t => '"' + (/^[=+\-@]/.test(t) ? "'" + t : t).replace(/"/g, '""') + '"';
     const f = ['Pedido,Fecha,Cliente,Total', ...ventas().map(p => `${p.id},${p.fecha.slice(0, 10)},${q(p.cliente)},${p.total}`)].join('\n');
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([f], { type: 'text/csv' })); a.download = 'ventas.csv'; a.click();
   }
@@ -169,7 +172,6 @@ document.addEventListener('click', async e => {
   if (b) try { await A[b.dataset.a]?.(b.dataset.id, b); } catch (err) { toast(err.message); }
 });
 
-// ---------- login / registro ----------
 const loginErr = t => { $('#loginErr').textContent = t || ''; };
 function mostrarLogin() {
   user = null; cart = {}; db = { productos: [], pedidos: [], usuarios: [] };
@@ -198,8 +200,6 @@ $('#alt').onclick = () => {
   $('#alt').textContent = reg ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate';
 };
 
-// Actualiza los datos cada 15 s (p. ej. pedidos nuevos en cocina)
 setInterval(() => { if (user && !dlg.open) refrescar().catch(() => { }); }, 15000);
 
-// Al abrir la página: ¿ya hay sesión?
 api('GET', '/api/me').then(entrar).catch(mostrarLogin);

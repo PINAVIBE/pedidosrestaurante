@@ -5,10 +5,10 @@ const bcrypt = require('bcryptjs');
 const db = require('./db');
 
 const app = express();
-app.set('trust proxy', 1); // detrás del proxy de Render: IP real y HTTPS correcto
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 const COOKIE = 'sid';
-const TTL = 8 * 60 * 60 * 1000; // sesión de 8 horas
+const TTL = 8 * 60 * 60 * 1000;
 const CATEGORIAS = ['Almuerzos', 'Snacks', 'Bebidas', 'Postres'];
 const ROLES = ['cliente', 'cocina', 'admin'];
 const SIG = { Pendiente: 'Preparando', Preparando: 'Listo', Listo: 'Entregado' };
@@ -21,7 +21,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// ---------- utilidades ----------
 class HttpError extends Error { constructor(status, msg) { super(msg); this.status = status; } }
 const bad = (msg, status = 400) => { throw new HttpError(status, msg); };
 const wrap = fn => (req, res, next) => { try { fn(req, res); } catch (e) { next(e); } };
@@ -41,13 +40,18 @@ const cookies = req => Object.fromEntries((req.headers.cookie || '').split(';').
   .map(c => { const i = c.indexOf('='); return [c.slice(0, i), decodeURIComponent(c.slice(i + 1))]; }));
 const publico = u => ({ id: u.id, nombre: u.nombre, email: u.email, rol: u.rol });
 
-// ---------- sesiones ----------
 function abrirSesion(res, usuarioId) {
   const token = crypto.randomBytes(32).toString('hex');
   db.prepare('INSERT INTO sesiones (token_hash,usuario_id,expira) VALUES (?,?,?)').run(hash(token), usuarioId, Date.now() + TTL);
   res.cookie(COOKIE, token, { httpOnly: true, sameSite: 'lax', maxAge: TTL, secure: process.env.NODE_ENV === 'production' });
 }
 db.prepare('DELETE FROM sesiones WHERE expira < ?').run(Date.now());
+
+if (process.env.RESET_ADMIN_PASSWORD && process.env.ADMIN_EMAIL) {
+  const r = db.prepare("UPDATE usuarios SET password_hash = ? WHERE email = ? AND rol = 'admin'")
+    .run(bcrypt.hashSync(process.env.RESET_ADMIN_PASSWORD, 10), process.env.ADMIN_EMAIL.toLowerCase());
+  console.log(r.changes ? '[AVISO] Contraseña del admin restablecida. Quita RESET_ADMIN_PASSWORD.' : '[AVISO] No se encontró el admin para restablecer.');
+}
 
 const auth = (...roles) => (req, res, next) => {
   const t = cookies(req)[COOKIE];
@@ -59,7 +63,6 @@ const auth = (...roles) => (req, res, next) => {
   next();
 };
 
-// Límite simple de intentos fallidos de login (por IP + correo)
 const intentos = new Map();
 const LIM = 8, VENTANA = 15 * 60 * 1000;
 const bloqueado = k => { const r = intentos.get(k); return r && r.reset > Date.now() && r.n >= LIM; };
@@ -68,7 +71,6 @@ const fallo = k => {
   if (!r || r.reset < Date.now()) intentos.set(k, { n: 1, reset: Date.now() + VENTANA }); else r.n++;
 };
 
-// ---------- autenticación ----------
 app.post('/api/login', wrap((req, res) => {
   const email = txt(req.body.email, 120, 'El correo').toLowerCase();
   const password = typeof req.body.password === 'string' ? req.body.password : '';
@@ -90,7 +92,7 @@ app.post('/api/registro', wrap((req, res) => {
   if (password.length < 8 || password.length > 72) bad('La contraseña debe tener entre 8 y 72 caracteres');
   if (db.prepare('SELECT 1 FROM usuarios WHERE email = ?').get(email)) bad('Ese correo ya está registrado', 409);
   const id = db.prepare('INSERT INTO usuarios (nombre,email,password_hash,rol) VALUES (?,?,?,?)')
-    .run(nombre, email, bcrypt.hashSync(password, 10), 'cliente').lastInsertRowid; // el registro público siempre es "cliente"
+    .run(nombre, email, bcrypt.hashSync(password, 10), 'cliente').lastInsertRowid;
   abrirSesion(res, id);
   res.status(201).json(publico(db.prepare('SELECT * FROM usuarios WHERE id = ?').get(id)));
 }));
@@ -104,7 +106,6 @@ app.post('/api/logout', (req, res) => {
 
 app.get('/api/me', auth(), (req, res) => res.json(publico(req.user)));
 
-// ---------- productos ----------
 const leerProducto = b => ({
   nombre: txt(b.nombre, 80, 'El nombre'),
   cat: CATEGORIAS.includes(b.cat) ? b.cat : bad('Categoría no válida'),
@@ -142,7 +143,6 @@ app.post('/api/productos/:id/stock', auth('admin'), wrap((req, res) => {
   res.json({ ok: true });
 }));
 
-// ---------- pedidos ----------
 function listarPedidos(usuarioId) {
   const pedidos = usuarioId
     ? db.prepare('SELECT * FROM pedidos WHERE usuario_id = ? ORDER BY id').all(usuarioId)
@@ -164,7 +164,7 @@ const crearPedido = db.transaction((user, items) => {
     db.prepare('UPDATE productos SET stock = stock - ? WHERE id = ?').run(qty, p.id);
     return { p, qty };
   });
-  const total = filas.reduce((s, { p, qty }) => s + p.precio * qty, 0); // el precio SIEMPRE se calcula en el servidor
+  const total = filas.reduce((s, { p, qty }) => s + p.precio * qty, 0);
   const pid = db.prepare('INSERT INTO pedidos (usuario_id,cliente,total,estado,fecha) VALUES (?,?,?,?,?)')
     .run(user.id, user.nombre, total, 'Pendiente', new Date().toISOString()).lastInsertRowid;
   const ins = db.prepare('INSERT INTO pedido_items (pedido_id,producto_id,nombre,precio,qty) VALUES (?,?,?,?,?)');
@@ -190,7 +190,6 @@ app.post('/api/pedidos/:id/avanzar', auth('cocina', 'admin'), wrap((req, res) =>
   res.json({ estado: SIG[p.estado] });
 }));
 
-// ---------- usuarios (solo admin) ----------
 app.get('/api/usuarios', auth('admin'), (req, res) =>
   res.json(db.prepare('SELECT id,nombre,email,rol FROM usuarios ORDER BY id').all()));
 
@@ -207,6 +206,15 @@ app.post('/api/usuarios', auth('admin'), wrap((req, res) => {
   res.status(201).json({ id });
 }));
 
+app.post('/api/usuarios/:id/password', auth('admin'), wrap((req, res) => {
+  const id = +req.params.id;
+  const password = typeof req.body.password === 'string' ? req.body.password : '';
+  if (password.length < 8 || password.length > 72) bad('La contraseña debe tener entre 8 y 72 caracteres');
+  if (!db.prepare('UPDATE usuarios SET password_hash = ? WHERE id = ?').run(bcrypt.hashSync(password, 10), id).changes) bad('Usuario no encontrado', 404);
+  if (id !== req.user.id) db.prepare('DELETE FROM sesiones WHERE usuario_id = ?').run(id);
+  res.json({ ok: true });
+}));
+
 app.delete('/api/usuarios/:id', auth('admin'), wrap((req, res) => {
   const id = +req.params.id;
   if (id === req.user.id) bad('No puedes eliminar tu propia cuenta');
@@ -214,7 +222,6 @@ app.delete('/api/usuarios/:id', auth('admin'), wrap((req, res) => {
   res.json({ ok: true });
 }));
 
-// ---------- frontend y errores ----------
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api', (req, res) => res.status(404).json({ error: 'Ruta no encontrada' }));
 app.use((err, req, res, next) => {

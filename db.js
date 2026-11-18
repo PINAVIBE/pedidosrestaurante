@@ -1,4 +1,3 @@
-// Base de datos SQLite: esquema + datos iniciales.
 const Database = require('better-sqlite3');
 const bcrypt = require('bcryptjs');
 const path = require('path');
@@ -57,11 +56,9 @@ CREATE TABLE IF NOT EXISTS sesiones (
 );
 `);
 
-// ---- Datos iniciales (solo si las tablas están vacías) ----
 const vacio = t => db.prepare(`SELECT COUNT(*) n FROM ${t}`).get().n === 0;
 
 if (vacio('usuarios')) {
-  // Las contraseñas NUNCA van en el código: se leen de variables de entorno.
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@comedor.local';
   let adminPass = process.env.ADMIN_PASSWORD;
   if (!adminPass) {
@@ -70,7 +67,6 @@ if (vacio('usuarios')) {
   }
   const ins = db.prepare('INSERT INTO usuarios (nombre,email,password_hash,rol) VALUES (?,?,?,?)');
   ins.run('Administrador', adminEmail, bcrypt.hashSync(adminPass, 10), 'admin');
-  // Usuarios de demostración (solo si defines DEMO_PASSWORD)
   if (process.env.DEMO_PASSWORD) {
     const h = bcrypt.hashSync(process.env.DEMO_PASSWORD, 10);
     ins.run('Cocina Demo', 'cocina@comedor.local', h, 'cocina');
