@@ -63,9 +63,9 @@ const vacio = t => db.prepare(`SELECT COUNT(*) n FROM ${t}`).get().n === 0;
 if (vacio('usuarios')) {
   const ins = db.prepare('INSERT INTO usuarios (nombre,email,password_hash,rol) VALUES (?,?,?,?)');
   [
-    ['Administrador', 'admin@universidad.edu', 'admin123', 'admin'],
-    ['Marta Gómez', 'cocina@universidad.edu', 'cocina123', 'cocina'],
-    ['Laura Pérez', 'laura@universidad.edu', 'laura1234', 'cliente'],
+    ['Administrador', 'juan.josegn18@gmail.com', 'macroso322', 'admin'],
+    ['Hola !', 'hogriderrider01@gmail.com', 'macroso322', 'cocina'],
+    ['hola, estimado usuario', 'jj1137976474@gmail.com', 'macroso322', 'cliente'],
   ].forEach(([n, e, p, r]) => ins.run(n, e, bcrypt.hashSync(p, 10), r));
 }
 
@@ -82,7 +82,7 @@ if (vacio('productos')) {
 }
 
 if (vacio('pedidos')) {
-  const laura = db.prepare("SELECT id FROM usuarios WHERE email='laura@universidad.edu'").get().id;
+  const laura = db.prepare("SELECT id FROM usuarios WHERE email='laura@universidad.edu'").get()?.id ?? null;
   const p = db.prepare('INSERT INTO pedidos (usuario_id,cliente,total,estado,fecha) VALUES (?,?,?,?,?)');
   const i = db.prepare('INSERT INTO pedido_items (pedido_id,producto_id,nombre,precio,qty) VALUES (?,?,?,?,?)');
   const f = new Date().toISOString();

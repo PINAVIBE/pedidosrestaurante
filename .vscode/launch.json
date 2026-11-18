@@ -8,7 +8,7 @@
             "type": "msedge",
             "request": "launch",
             "name": "Open index.html",
-            "url": "http://localhost:3000"
+            "file": "c:\\Users\\juanj\\OneDrive\\Documentos\\restaurantegestion\\index.html"
         }
     ]
 }

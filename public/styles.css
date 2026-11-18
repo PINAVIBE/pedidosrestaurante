@@ -1,14 +1,19 @@
+/* ============ Comedor Universitario · estilos ============ */
 :root {
-  --ink: #17252a;
-  --mute: #5d6d72;
-  --bg: #eef2f1;
+  --ink: #16231f;
+  --mute: #5b6b66;
+  --bg: #f4f7ec;
   --card: #fff;
-  --line: #d6dfdd;
-  --main: #0f5c4d;
-  --main-d: #0a3f35;
-  --sun: #f2b61f;
-  --red: #c8442f;
-  --r: 10px;
+  --line: #dde5d3;
+  --main: #0b6b50;
+  --main-d: #084a38;
+  --sun: #ffc21a;
+  --tomato: #ff5a36;
+  --aqua: #2ec4b6;
+  --rose: #ff8fb1;
+  --red: #d63b27;
+  --r: 14px;
+  --sombra: 0 12px 28px -14px rgba(8, 74, 56, 0.45);
 }
 
 * {
@@ -33,6 +38,22 @@ h3 {
   margin-bottom: 1rem;
 }
 
+/* Títulos de cada pantalla: subrayado tipo marcador */
+#view > h3,
+#view .bar > h3 {
+  display: inline-block;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  background: linear-gradient(transparent 60%, var(--sun) 60% 92%, transparent 92%);
+  padding: 0 0.3rem;
+  margin-left: -0.3rem;
+}
+
+#view > h3 {
+  margin-bottom: 1.4rem;
+}
+
 button,
 input,
 select {
@@ -43,14 +64,24 @@ button {
   cursor: pointer;
   border: 0;
   border-radius: var(--r);
-  padding: 0.6rem 1rem;
+  padding: 0.6rem 1.1rem;
   background: var(--main);
   color: #fff;
   font-weight: 600;
+  transition: background 0.15s, transform 0.1s;
 }
 
 button:hover {
   background: var(--main-d);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 button:focus-visible,
@@ -63,11 +94,11 @@ select:focus-visible {
 button.ghost {
   background: transparent;
   color: inherit;
-  border: 1px solid currentColor;
+  border: 1.5px solid currentColor;
 }
 
 button.sm {
-  padding: 0.3rem 0.65rem;
+  padding: 0.3rem 0.7rem;
   font-size: 0.85rem;
 }
 
@@ -75,27 +106,49 @@ button.danger {
   background: var(--red);
 }
 
+button.danger:hover {
+  background: #b02e1d;
+}
+
+/* ---------- login ---------- */
 #login {
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: 1rem;
-  background: var(--main);
+  background:
+    radial-gradient(circle at 10% 16%, var(--sun) 0 90px, transparent 91px),
+    radial-gradient(circle at 90% 84%, var(--tomato) 0 140px, transparent 141px),
+    radial-gradient(circle at 84% 12%, var(--aqua) 0 56px, transparent 57px),
+    radial-gradient(circle at 8% 90%, var(--rose) 0 44px, transparent 45px),
+    var(--main);
 }
 
 .login-box {
   background: var(--card);
   padding: 2rem;
-  border-radius: 16px;
-  width: min(380px, 100%);
+  border-radius: 28px;
+  width: min(400px, 100%);
   display: grid;
   gap: 0.8rem;
+  box-shadow: 0 34px 60px -24px rgba(0, 0, 0, 0.55);
+}
+
+.login-art {
+  display: block;
+  width: calc(100% + 4rem);
+  max-width: none;
+  margin: -2rem -2rem 0.4rem;
+  aspect-ratio: 16 / 8;
+  object-fit: cover;
+  border-radius: 28px 28px 0 0;
 }
 
 .login-box h1 {
-  font-size: 2.4rem;
-  line-height: 1;
+  font-size: 2.6rem;
+  line-height: 0.98;
   font-weight: 800;
+  letter-spacing: -0.03em;
   color: var(--main);
 }
 
@@ -103,7 +156,12 @@ button.danger {
   color: var(--mute);
 }
 
-.login-box button[type="button"].link,
+.login-box button:not(.link) {
+  padding: 0.75rem 1rem;
+  font-size: 1.02rem;
+}
+
+.login-box button[type='button'].link,
 .login-box button.link {
   background: none;
   color: var(--main);
@@ -117,16 +175,17 @@ button.danger {
   min-height: 1.2em;
 }
 
+/* ---------- estructura ---------- */
 #app {
   display: grid;
-  grid-template-columns: 230px 1fr;
+  grid-template-columns: 240px 1fr;
   min-height: 100vh;
 }
 
 aside {
   background: var(--main-d);
   color: #fff;
-  padding: 1.2rem;
+  padding: 1.3rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -136,8 +195,22 @@ aside {
 }
 
 aside h2 {
-  font-size: 1.4rem;
+  font-size: 1.45rem;
   font-weight: 800;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+aside h2::before {
+  content: '';
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 50%;
+  background: var(--sun);
+  box-shadow: 0.4rem 0.35rem 0 -0.1rem var(--tomato);
+  flex: none;
 }
 
 nav {
@@ -150,27 +223,28 @@ nav {
 nav button {
   background: transparent;
   text-align: left;
-  font-weight: 400;
-  color: #cfe3de;
+  font-weight: 500;
+  color: #d3e8e1;
+  padding: 0.7rem 0.9rem;
 }
 
 nav button.on {
   background: var(--sun);
   color: var(--ink);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 nav button:hover:not(.on) {
-  background: #ffffff1f;
+  background: #ffffff22;
 }
 
 #quien {
   font-size: 0.85rem;
-  color: #9fc2ba;
+  color: #a8cbc2;
 }
 
 #view {
-  padding: 1.6rem;
+  padding: 2rem;
   min-width: 0;
 }
 
@@ -179,21 +253,21 @@ nav button:hover:not(.on) {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
   flex-wrap: wrap;
 }
 
 .cols {
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 1.2rem;
+  grid-template-columns: 1fr 340px;
+  gap: 1.6rem;
   align-items: start;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fill, minmax(205px, 1fr));
+  gap: 1.5rem 1.2rem;
 }
 
 .card {
@@ -203,41 +277,98 @@ nav button:hover:not(.on) {
   padding: 1rem;
 }
 
+/* ---------- filtros ---------- */
 .chips {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+.chips.bar {
+  justify-content: flex-start;
 }
 
 .chips button {
   background: var(--card);
   color: var(--ink);
-  border: 1px solid var(--line);
-  font-weight: 400;
+  border: 2px solid var(--line);
+  border-radius: 99px;
+  padding: 0.45rem 1.1rem;
+  font-weight: 600;
+}
+
+.chips button:hover {
+  border-color: var(--main);
+  background: var(--card);
 }
 
 .chips button.on {
   background: var(--main);
+  border-color: var(--main);
   color: #fff;
 }
 
+/* ---------- tarjetas de platos ---------- */
 .prod {
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  box-shadow: var(--sombra);
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+}
+
+.prod .pic {
+  position: relative;
+}
+
+.prod .dish {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 22px 22px 0 0;
+  background: var(--line);
+}
+
+/* el precio como etiqueta pegada al plato */
+.prod .price {
+  position: absolute;
+  left: 0.9rem;
+  bottom: -0.85rem;
+  background: var(--ink);
+  color: var(--sun);
+  font-size: 1.2rem;
+  font-weight: 800;
+  padding: 0.2rem 0.75rem;
+  border-radius: 10px;
+  transform: rotate(-3deg);
+  box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.5);
+}
+
+.prod .info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.5rem 1rem 1rem;
+  flex: 1;
 }
 
 .prod b {
-  font-size: 1.05rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
 }
 
 .prod small {
   color: var(--mute);
+  font-weight: 600;
 }
 
 .prod .desc {
   color: var(--mute);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   line-height: 1.35;
 }
 
@@ -245,8 +376,30 @@ nav button:hover:not(.on) {
   display: none;
 }
 
-.prod .price {
+.prod .info > button {
   margin-top: auto;
+  background: var(--sun);
+  color: var(--ink);
+  font-weight: 700;
+  padding: 0.65rem 1rem;
+}
+
+.prod .info > button:hover {
+  background: #ffd24d;
+}
+
+.prod .info > .tag {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.prod .desc + button,
+.prod .desc + .tag {
+  margin-top: auto;
+}
+
+.prod.agotado .dish {
+  filter: grayscale(1) opacity(0.55);
 }
 
 .price {
@@ -255,21 +408,60 @@ nav button:hover:not(.on) {
   color: var(--main);
 }
 
+/* ---------- miniaturas en listas ---------- */
+.it {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.thumb {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex: none;
+  background: var(--line);
+}
+
+/* ---------- pedido (carrito) ---------- */
+.cols > .card {
+  position: sticky;
+  top: 1.2rem;
+  padding: 1.2rem;
+  border: 0;
+  border-top: 8px solid var(--sun);
+  border-radius: 22px;
+  box-shadow: var(--sombra);
+}
+
+.cols > .card > b {
+  font-size: 1.35rem;
+  font-weight: 800;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
 .line {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.4rem 0;
-  border-bottom: 1px solid var(--line);
+  padding: 0.55rem 0;
+  border-bottom: 1px dashed var(--line);
 }
 
 .total {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 800;
   display: flex;
   justify-content: space-between;
-  margin: 0.8rem 0;
+  margin: 0.9rem 0;
+}
+
+.cols > .card > button[data-a='pedir'] {
+  padding: 0.8rem 1rem;
+  font-size: 1.05rem;
 }
 
 .empty {
@@ -277,17 +469,34 @@ nav button:hover:not(.on) {
   padding: 1rem 0;
 }
 
+/* ---------- dashboard ---------- */
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.9rem;
-  margin-bottom: 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+
+.stat {
+  border: 0;
+  border-left: 8px solid var(--sun);
+  border-radius: 16px;
+  box-shadow: var(--sombra);
+}
+
+.stat:nth-child(2) {
+  border-left-color: var(--aqua);
+}
+
+.stat:nth-child(3) {
+  border-left-color: var(--tomato);
 }
 
 .stat b {
   display: block;
-  font-size: 2rem;
+  font-size: 2.3rem;
   font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--main);
 }
 
@@ -297,7 +506,7 @@ nav button:hover:not(.on) {
 
 .bars {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .bars div {
@@ -305,16 +514,17 @@ nav button:hover:not(.on) {
   grid-template-columns: 150px 1fr 40px;
   align-items: center;
   gap: 0.6rem;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
 }
 
 .bars i {
   display: block;
-  height: 14px;
-  background: var(--sun);
-  border-radius: 7px;
+  height: 16px;
+  background: linear-gradient(90deg, var(--sun), var(--tomato));
+  border-radius: 8px;
 }
 
+/* ---------- tablas ---------- */
 .scroll {
   overflow-x: auto;
 }
@@ -325,75 +535,109 @@ table {
   background: var(--card);
   border-radius: var(--r);
   overflow: hidden;
+  box-shadow: var(--sombra);
 }
 
 th,
 td {
-  padding: 0.65rem 0.8rem;
+  padding: 0.7rem 0.9rem;
   text-align: left;
   border-bottom: 1px solid var(--line);
   font-size: 0.92rem;
 }
 
 th {
-  background: #e3ebe9;
+  background: var(--main-d);
+  color: #fff;
   font-weight: 600;
+}
+
+td:last-child:has(button) {
+  white-space: nowrap;
+}
+
+tr:not(:first-child):hover td {
+  background: #f3f8e6;
 }
 
 .tag {
-  padding: 0.15rem 0.6rem;
+  padding: 0.15rem 0.65rem;
   border-radius: 99px;
   font-size: 0.8rem;
-  font-weight: 600;
-  background: #dbe9e6;
+  font-weight: 700;
+  background: #d6ebe4;
   color: var(--main-d);
+  white-space: nowrap;
 }
 
 .tag.low {
-  background: #f7d9d3;
-  color: var(--red);
+  background: #fbd9d1;
+  color: #a62a17;
 }
 
 .tag.Pendiente {
-  background: #fbebb9;
-  color: #7a5a00;
+  background: #ffe08a;
+  color: #6b4d00;
 }
 
 .tag.Preparando {
-  background: #cfe3f5;
-  color: #144a7a;
+  background: #bfe9f5;
+  color: #0e4a6b;
 }
 
 .tag.Listo {
-  background: #cdeedd;
+  background: #bfecd3;
   color: #0b5a32;
 }
 
+/* ---------- cocina ---------- */
 .kanban {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  gap: 1.2rem;
 }
 
 .kanban h4 {
-  margin-bottom: 0.6rem;
+  display: inline-block;
+  margin-bottom: 0.8rem;
+  padding: 0.25rem 0.9rem;
+  border-radius: 99px;
+  font-size: 1rem;
+  background: var(--line);
+}
+
+.kanban > div:nth-child(1) h4 {
+  background: #ffe08a;
+}
+
+.kanban > div:nth-child(2) h4 {
+  background: #bfe9f5;
+}
+
+.kanban > div:nth-child(3) h4 {
+  background: #bfecd3;
 }
 
 .kanban .card {
-  margin-bottom: 0.7rem;
+  margin-bottom: 0.8rem;
   display: grid;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: 18px;
+  box-shadow: var(--sombra);
 }
 
+/* ---------- diálogos y formularios ---------- */
 dialog {
   border: 0;
-  border-radius: 16px;
-  padding: 1.5rem;
-  width: min(400px, 92vw);
+  border-radius: 24px;
+  padding: 1.6rem;
+  width: min(420px, 92vw);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
 }
 
 dialog::backdrop {
-  background: #0008;
+  background: #0a2a22bb;
 }
 
 form {
@@ -410,9 +654,15 @@ label {
 
 input,
 select {
-  padding: 0.55rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  padding: 0.6rem 0.7rem;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+input:hover,
+select:hover {
+  border-color: #b9c8b0;
 }
 
 .acts {
@@ -423,18 +673,30 @@ select {
 
 #toast {
   position: fixed;
-  bottom: 1rem;
+  bottom: 1.2rem;
   left: 50%;
   transform: translate(-50%, 200%);
   background: var(--ink);
-  color: #fff;
-  padding: 0.7rem 1.2rem;
+  color: var(--sun);
+  font-weight: 600;
+  padding: 0.75rem 1.3rem;
   border-radius: var(--r);
-  transition: transform 0.25s;
+  transition: transform 0.25s, opacity 0.25s;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
 }
 
 #toast.show {
   transform: translate(-50%, 0);
+  opacity: 1;
+}
+
+/* ---------- adaptable ---------- */
+@media (max-width: 1100px) {
+  .cols {
+    grid-template-columns: 1fr 300px;
+  }
 }
 
 @media (max-width: 800px) {
@@ -452,14 +714,31 @@ select {
     flex-wrap: wrap;
   }
 
+  #view {
+    padding: 1.2rem;
+  }
+
   .cols,
   .kanban {
     grid-template-columns: 1fr;
   }
+
+  .cols > .card {
+    position: static;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
+
+  .bars div {
+    grid-template-columns: 100px 1fr 32px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #toast {
+  #toast,
+  button {
     transition: none;
   }
 }
