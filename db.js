@@ -61,12 +61,21 @@ CREATE TABLE IF NOT EXISTS sesiones (
 const vacio = t => db.prepare(`SELECT COUNT(*) n FROM ${t}`).get().n === 0;
 
 if (vacio('usuarios')) {
+  // Las contraseñas NUNCA van en el código: se leen de variables de entorno.
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@comedor.local';
+  let adminPass = process.env.ADMIN_PASSWORD;
+  if (!adminPass) {
+    adminPass = require('crypto').randomBytes(9).toString('base64url');
+    console.log(`[AVISO] ADMIN_PASSWORD no definida. Contraseña temporal del admin (${adminEmail}): ${adminPass}`);
+  }
   const ins = db.prepare('INSERT INTO usuarios (nombre,email,password_hash,rol) VALUES (?,?,?,?)');
-  [
-    ['Administrador', 'juan.josegn18@gmail.com', 'macroso322', 'admin'],
-    ['Hola !', 'hogriderrider01@gmail.com', 'macroso322', 'cocina'],
-    ['hola, estimado usuario', 'jj1137976474@gmail.com', 'macroso322', 'cliente'],
-  ].forEach(([n, e, p, r]) => ins.run(n, e, bcrypt.hashSync(p, 10), r));
+  ins.run('Administrador', adminEmail, bcrypt.hashSync(adminPass, 10), 'admin');
+  // Usuarios de demostración (solo si defines DEMO_PASSWORD)
+  if (process.env.DEMO_PASSWORD) {
+    const h = bcrypt.hashSync(process.env.DEMO_PASSWORD, 10);
+    ins.run('Cocina Demo', 'cocina@comedor.local', h, 'cocina');
+    ins.run('Cliente Demo', 'cliente@comedor.local', h, 'cliente');
+  }
 }
 
 if (vacio('productos')) {

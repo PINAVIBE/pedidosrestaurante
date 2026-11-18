@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const db = require('./db');
 
 const app = express();
+app.set('trust proxy', 1); // detrás del proxy de Render: IP real y HTTPS correcto
 const PORT = process.env.PORT || 3000;
 const COOKIE = 'sid';
 const TTL = 8 * 60 * 60 * 1000; // sesión de 8 horas
