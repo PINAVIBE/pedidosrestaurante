@@ -136,7 +136,7 @@ app.delete('/api/productos/:id', auth('admin'), wrap((req, res) => {
 }));
 
 app.post('/api/productos/:id/stock', auth('admin'), wrap((req, res) => {
-  const d = ent(req.body.delta, 'El ajuste', { min: -1000, max: 1000 });
+  const d = ent(req.body.delta, 'El ajuste', { min: -100000, max: 100000 });
   const r = db.prepare('UPDATE productos SET stock = MAX(0, stock + ?) WHERE id = ?').run(d, +req.params.id);
   if (!r.changes) bad('Producto no encontrado', 404);
   res.json({ ok: true });

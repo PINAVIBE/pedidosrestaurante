@@ -104,7 +104,7 @@ const V = {
     return `<h3>Inventario</h3><div class="scroll"><table><tr><th>Producto</th><th>Stock</th><th>Mínimo</th><th>Estado</th><th>Ajustar</th></tr>
       ${db.productos.map(p => `<tr><td>${esc(p.nombre)}</td><td>${p.stock}</td><td>${p.min}</td>
         <td><span class="tag ${p.stock <= p.min ? 'low' : ''}">${p.stock <= p.min ? 'Reponer' : 'Suficiente'}</span></td>
-        <td><button class="sm" data-a="stock" data-id="${p.id}" data-d="-5">−5</button> <button class="sm" data-a="stock" data-id="${p.id}" data-d="10">+10</button></td></tr>`).join('')}</table></div>`;
+        <td><button class="sm" data-a="stock" data-id="${p.id}" data-d="-5">−5</button> <button class="sm" data-a="stock" data-id="${p.id}" data-d="10">+10</button> <button class="sm" data-a="ajustar" data-id="${p.id}">Otra cantidad</button></td></tr>`).join('')}</table></div>`;
   },
   pedidos() {
     return `<h3>Todos los pedidos</h3><div class="scroll"><table><tr><th>#</th><th>Cliente</th><th>Detalle</th><th>Total</th><th>Estado</th></tr>
@@ -150,6 +150,11 @@ const A = {
   nuevoProd: () => form('Nuevo producto', campoProd({ nombre: '', cat: 'Almuerzos', precio: '', stock: '', min: '' }), o => api('POST', '/api/productos', num(o))),
   editProd: id => { const p = db.productos.find(x => x.id == id); form('Editar producto', campoProd(p), o => api('PUT', `/api/productos/${id}`, num(o))); },
   delProd: async id => { if (confirm('¿Eliminar este producto?')) { await api('DELETE', `/api/productos/${id}`); await refrescar(); } },
+  ajustar: id => {
+    const p = db.productos.find(x => x.id == id);
+    form(`Ajustar stock: ${p.nombre} (actual: ${p.stock})`, [{ k: 'delta', l: 'Cantidad a sumar (usa negativo para restar, ej: -3)', t: 'number', v: '' }],
+      o => api('POST', `/api/productos/${id}/stock`, { delta: +o.delta }));
+  },
   stock: async (id, b) => { await api('POST', `/api/productos/${id}/stock`, { delta: +b.dataset.d }); await refrescar(); },
   nuevoUser: () => form('Nuevo usuario', [{ k: 'nombre', l: 'Nombre' }, { k: 'email', l: 'Correo', t: 'email' }, { k: 'password', l: 'Contraseña (mínimo 8 caracteres)', t: 'password' }, { k: 'rol', l: 'Rol', o: ['cliente', 'cocina', 'admin'] }], o => api('POST', '/api/usuarios', o)),
   delUser: async id => { if (confirm('¿Eliminar este usuario?')) { await api('DELETE', `/api/usuarios/${id}`); await refrescar(); } },
